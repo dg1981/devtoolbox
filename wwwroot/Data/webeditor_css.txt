@@ -1,0 +1,4 @@
+﻿<style>
+h1 { font-size: 25px; color: crimson; }
+#b1 { font-size: 25px; }
+</style>

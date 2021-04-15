@@ -1,0 +1,10 @@
+﻿<script src='https://code.jquery.com/jquery-3.5.1.min.js' crossorigin='anonymous'></script>
+<script>
+$(document).ready(function() {
+ var fs = 25;
+ $('#b1').click(function(){
+   fs = fs + 10;
+   $('#hdr').css('font-size', fs);
+});
+});
+</script>

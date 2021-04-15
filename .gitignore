@@ -1,0 +1,12 @@
+bower_components
+build
+bin
+obj
+build*
+*.crt
+*.pfx
+electron.*
+*.csproj*
+*profile
+Startup.cs
+

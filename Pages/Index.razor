@@ -1,0 +1,129 @@
+﻿@page "/"
+@using ElectronNET.API;
+@using ElectronNET.API.Entities;
+@using System.Timers;
+
+@inject NavigationManager NavManager
+@inject ProtectedLocalStorage _protectedLocalStorage;
+@inject IJSRuntime jsRuntime
+@inject IAnalytics analytics
+
+
+<div>
+    <div class="row mb-2">
+        <div class="col-sm-6 mt-3">
+            <h3>
+                <a class="nav-link d-sm-inline" data-widget="pushmenu" href="#">
+                    <i class="fas fa-bars"></i>
+                </a>Welcome to DevGear!
+            </h3>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+
+                var lastPage = await _protectedLocalStorage.GetAsync<string>("LastPage");
+                if (string.IsNullOrWhiteSpace(lastPage)) lastPage = "/json";
+                NavManager.NavigateTo(lastPage);
+
+                await CheckUpdate();
+                System.Timers.Timer aTimer = new System.Timers.Timer();
+                aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
+                aTimer.Interval = 1000 * 60 * 60 * 12;
+                aTimer.Enabled = true;
+
+
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    private void OnTimedEvent(object source, ElapsedEventArgs e)
+    {
+        try
+        {
+            var result = CheckUpdate().Result;
+
+        }
+        catch(Exception ex)
+        {
+            //
+        }
+
+
+    }
+
+
+
+
+    private async Task<bool> CheckUpdate()
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            Electron.AutoUpdater.OnError += (message) => jsRuntime.InvokeAsync<string>("console.log", "Error: " + message);
+            Electron.AutoUpdater.OnCheckingForUpdate += async () => await jsRuntime.InvokeAsync<string>("console.log", "Checking for Update");
+            Electron.AutoUpdater.OnUpdateNotAvailable += async (info) => await jsRuntime.InvokeAsync<string>("console.log", "Update not available");
+            Electron.AutoUpdater.OnUpdateAvailable += async (info) => await jsRuntime.InvokeAsync<string>("console.log", "Update available v" + info.Version + ". ");
+            Electron.AutoUpdater.OnDownloadProgress += (info) =>
+            {
+                var message1 = "Download speed: " + info.BytesPerSecond + "\n<br/>";
+                var message2 = "Downloaded " + info.Percent + "%" + "\n<br/>";
+                var message3 = $"({info.Transferred}/{info.Total})" + "\n<br/>";
+                var message4 = "Progress: " + info.Progress + "\n<br/>";
+                var information = message1 + message2 + message3 + message4;
+
+                var mainWindow = Electron.WindowManager.BrowserWindows.First();
+                Electron.IpcMain.Send(mainWindow, "auto-update-reply", information);
+            };
+
+            //  Electron.AutoUpdater.OnError += (message) => Electron.Dialog.ShowErrorBox("Error", message);
+            //  Electron.AutoUpdater.OnCheckingForUpdate += async () => await Electron.Dialog.ShowMessageBoxAsync("Checking for Update");
+            //  Electron.AutoUpdater.OnUpdateNotAvailable += async (info) => await Electron.Dialog.ShowMessageBoxAsync("Update not available");
+            //  Electron.AutoUpdater.OnUpdateAvailable += async (info) => await Electron.Dialog.ShowMessageBoxAsync("Update available v" + info.Version + ". ");
+            //  Electron.AutoUpdater.OnDownloadProgress += (info) =>
+            //  {
+            //      var message1 = "Download speed: " + info.BytesPerSecond + "\n<br/>";
+            //      var message2 = "Downloaded " + info.Percent + "%" + "\n<br/>";
+            //      var message3 = $"({info.Transferred}/{info.Total})" + "\n<br/>";
+            //      var message4 = "Progress: " + info.Progress + "\n<br/>";
+            //      var information = message1 + message2 + message3 + message4;
+
+            //      var mainWindow = Electron.WindowManager.BrowserWindows.First();
+            //      Electron.IpcMain.Send(mainWindow, "auto-update-reply", information);
+            //  };
+            //  Electron.AutoUpdater.OnUpdateDownloaded += async (info) => await Electron.Dialog.ShowMessageBoxAsync($"Update to v{info.Version} complete! Please restart app to use the latest version.");
+
+            //    Electron.IpcMain.On("auto-update", async (args) =>
+            //   {
+            // Electron.NET CLI Command for deploy:
+            // electronize build /target win /electron-params --publish=always
+
+            var currentVersion = await Electron.App.GetVersionAsync();
+            var updateCheckResult = await Electron.AutoUpdater.CheckForUpdatesAndNotifyAsync();
+            var availableVersion = updateCheckResult.UpdateInfo.Version;
+            string information = $"Current version: {currentVersion} - available version: {availableVersion}";
+
+            // var mainWindow = Electron.WindowManager.BrowserWindows.First();
+            // Electron.IpcMain.Send(mainWindow, "auto-update-reply", information);
+            // });
+
+            analytics.TrackEvent("iAmAlive");
+        }
+        return true;
+    }
+
+
+
+
+}

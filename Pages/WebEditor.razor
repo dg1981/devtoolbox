@@ -1,0 +1,180 @@
+﻿@page "/webeditor"
+@using System.Globalization
+@using CurrieTechnologies.Razor.Clipboard
+@using System.Text.RegularExpressions
+@using System.IO;
+@using Microsoft.AspNetCore.Hosting;
+
+@inject ClipboardService clipboard
+@inject IJSRuntime _jsRunTime
+@inject IWebHostEnvironment _hostingEnvironment
+
+<div>
+    <div class="row mb-4">
+        <div class="col-sm-6 mt-3">
+            <h3>
+                <a class="nav-link d-sm-inline" data-widget="pushmenu" href="#">
+                    <i class="fas fa-bars"></i>
+                </a>Web Editor
+            </h3>
+        </div>
+    </div>
+    <div class="row ">
+
+        <div class="col-5 webeditor">
+
+            <div class="col-12 ">
+                <div class="card card-warning  ">
+                    <div class="card-header">
+                        <h3 class="card-title  text-bold">HTML</h3>
+                        <button data-toggle="tooltip" data-placement="top" title="RenderHtml" class="btn btn-warning float-right" @onclick="@(() => RenderHtml())"><i class="fas fa-lg fa-caret-square-right"></i> Render Html <i class="fas fa-lg fa-caret-square-right"></i> </button>
+
+                    </div>
+                    <div class="card-body  p-0">
+                        <textarea @ref="ref_HtmlTextArea" @bind="HtmlString" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 ">
+                <div class="card card-warning  ">
+                    <div class="card-header">
+                        <h3 class="card-title  text-bold">CSS</h3>
+
+                    </div>
+                    <div class="card-body  p-0">
+                        <textarea @ref="ref_CssTextArea" @bind="CssString" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 ">
+                <div class="card card-warning  ">
+                    <div class="card-header">
+                        <h3 class="card-title  text-bold">Javascript</h3>
+
+                    </div>
+                    <div class="card-body  p-0">
+                        <textarea @ref="ref_JsTextArea" @bind="JsString" />
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-7">
+            <div class="card card-warning  ">
+                <div class="card-header">
+                    <h3 class="card-title  text-bold">Rendered Page</h3>
+
+                </div>
+                <div class="card-body  p-0 std-ta">
+                    <!--textarea @ref="ref_ResultTextArea" @bind="ResultString" /-->
+                    <iframe id="resultHtmlIframe"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code { public ElementReference ref_HtmlTextArea { get; set; }
+    public ElementReference ref_CssTextArea { get; set; }
+    public ElementReference ref_JsTextArea { get; set; }
+    public ElementReference ref_iframe { get; set; }
+
+    string htmlString = "";
+    public string HtmlString { get; set; }// { get { return htmlString; } set { value = htmlString; RenderHtml(); } }
+
+    string cssString = "";
+    public string CssString { get; set; }//{ get { return cssString; } set { value = cssString; RenderHtml(); } }
+
+    string jsString = "";
+    public string JsString { get; set; }//{ get { return jsString; } set { value = jsString; RenderHtml(); } }
+
+    string renderedHtml = "";
+    public string RenderedHtml { get; set; }//{ get { return renderedHtml; } set { value = renderedHtml; RenderHtml(); } }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _jsRunTime.InvokeVoidAsync("setTitle", "WebEditor - DevGearApp");
+            await _jsRunTime.InvokeAsync<int>("codeMirrorJsFunctions.initialize", ref_HtmlTextArea, "text/html", false);
+            await _jsRunTime.InvokeAsync<int>("codeMirrorJsFunctions.initialize", ref_CssTextArea, "text/css", false);
+            await _jsRunTime.InvokeAsync<int>("codeMirrorJsFunctions.initialize", ref_JsTextArea, "text/javascript", false);
+            //await _jsRunTime.InvokeAsync<int>("codeMirrorJsFunctions.initialize", ref_ResultTextArea, "text/html", false);
+
+            await LoadSample();
+            await RenderHtml();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+    private async Task<bool> RenderHtml()
+    {
+        string RenderedHtml = "";
+        HtmlString = Regex.Replace(HtmlString, "<html>", "<html>", RegexOptions.IgnoreCase);
+        HtmlString = Regex.Replace(HtmlString, "</html>", "</html>", RegexOptions.IgnoreCase);
+        HtmlString = Regex.Replace(HtmlString, "<head>", "<head>", RegexOptions.IgnoreCase);
+        HtmlString = Regex.Replace(HtmlString, "</head>", "</head>", RegexOptions.IgnoreCase);
+        HtmlString = Regex.Replace(HtmlString, "<body>", "<body>", RegexOptions.IgnoreCase);
+        HtmlString = Regex.Replace(HtmlString, "</body>", "</body>", RegexOptions.IgnoreCase);
+
+        if (!HtmlString.Contains("<html>"))
+        {
+            RenderedHtml = "<html></html>";
+        }
+
+        if (!HtmlString.Contains("<head>"))
+        {
+            RenderedHtml = RenderedHtml.Replace("<html>", "<html><head></head>");
+        }
+
+        if (!HtmlString.Contains("<body>"))
+        {
+            RenderedHtml = RenderedHtml.Replace("<head>", "<head><body></body>");
+        }
+
+        HtmlString = await _jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.getCode", ref_HtmlTextArea);
+        CssString = await _jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.getCode", ref_CssTextArea);
+        JsString = await _jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.getCode", ref_JsTextArea);
+
+        //add CSS
+        RenderedHtml = RenderedHtml.Replace("<head>", "<head>" + CssString);
+
+        //add HTML
+        RenderedHtml = RenderedHtml.Replace("<body>", "<body>" + HtmlString);
+
+        //add JS
+        RenderedHtml = RenderedHtml.Replace("</body>", JsString + "</body>");
+
+        await _jsRunTime.InvokeAsync<int>("dgFunctions.setWebEditorIframe", "#resultHtmlIframe", RenderedHtml);
+
+        return true;
+    }
+
+    public async Task<bool> LoadSample()
+    {
+        try
+        {
+            HtmlString =  System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + ("/Data/webeditor_html.txt"));
+            CssString = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + ("/Data/webeditor_css.txt"));
+            JsString = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + ("/Data/webeditor_js.txt"));
+
+            await _jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.setValue", ref_HtmlTextArea, HtmlString);
+            await _jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.setValue", ref_CssTextArea, CssString);
+            await _jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.setValue", ref_JsTextArea, JsString);
+
+            return true;
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return true;
+        }
+    }
+    }

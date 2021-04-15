@@ -1,0 +1,258 @@
+﻿@page "/"
+@namespace DevGear.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevGear</title>
+    <base href="~/" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/css/adminlte.css">
+    <link rel="stylesheet" href="~/css/merge.css">
+
+    <link rel="stylesheet" href="~/css/github.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/diff2html.min.css" />
+
+
+    <!-- overlayScrollbars -->
+    <link rel="stylesheet" href="plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
+    <!-- Google Font: Source Sans Pro -->
+    <!--link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet" -->
+
+    <link href="css/codemirror.css" rel="stylesheet" />
+    <link href="css/site.css" rel="stylesheet" />
+
+  
+
+</head>
+<body class="sidebar-mini layout-fixed ">
+    
+    <div id="components-reconnect-modal">
+        Initializing. Please wait...
+    </div>
+    <app>
+        @(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
+    </app>
+
+    <!-- Insert this line above script imports  -->
+    <script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
+
+
+    <!-- jQuery -->
+    <script src="plugins/jquery/jquery.min.js"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>$.widget.bridge('uibutton', $.ui.button)</script>
+    <!-- Bootstrap 4 -->
+    @*<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>*@
+    <script src="plugins/bootstrap/js/bootstrap.min.js"></script>
+    <!-- overlayScrollbars -->
+    <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="js/adminlte.js"></script>
+    <script src="js/diff_match_patch.js"></script>
+    <script src="js/codemirror.js"></script>
+    <script src="js/modes/xml.js"></script>
+    <script src="js/modes/hardwrap.js"></script>
+    <script src="js/modes/merge.js"></script>
+
+    <script src="js/modes/javascript.js"></script>
+    <script src="js/site.js"></script>
+    <script src="_content/Microsoft.AspNetCore.ProtectedBrowserStorage/protectedBrowserStorage.js"></script>
+    <script src="_content/CurrieTechnologies.Razor.Clipboard/clipboard.min.js"></script>
+    <SCRIPT SRC="js/diff_match_patch.js"></SCRIPT>
+    <script type="text/javascript" src="js/diff2html-ui.min.js"></script>
+
+    <script type="blazor-boot">
+    </script>
+
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/Blazor-Analytics/blazor-analytics.js"></script>
+    <script>
+        setTitle = (title) => { document.title = title; };
+
+        window.dgFunctions = {
+            SetCheckBox: function (elem, value) {
+                $(elem).prop('checked', value);
+                return 1;
+            },
+            setWebEditorIframe: function (elem, value) {
+                $(elem).attr("srcdoc", value);
+                return 1;
+            }
+        }
+
+        var value = "", orig1 = "", orig2 = "", dv, panes = 2, highlight = true, connect = "align", collapse = true, d;
+
+        window.codeMirrorJsFunctions = {
+            initialize: function (element, markupMode, isReadOnly) {
+                element.codeMirrorLink = CodeMirror.fromTextArea(element,
+                    {
+                        mode: markupMode,
+                        matchBrackets: true,
+                        autoCloseBrackets: true,
+                        indentWithTabs: true,
+                        lineNumbers: true,
+                        autofocus: true,
+                        styleActiveLine: true,
+                        readOnly: isReadOnly,
+                        lineWrapping: true,
+                        foldGutter: true,
+                        //  height: "100%",// '90%',
+                        //  width: "100%",//'90%',
+                        //height: "100px",// '90%',
+                        //width: "100px",//'90%',
+                        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']
+                    });
+
+                //  element.codeMirrorLink.setOption("theme", "neat");
+
+                return 0;
+            },
+            setSize: function (element, height, width) {
+                return element.codeMirrorLink.setSize(height, width);
+            },
+
+            getCode: function (element) {
+                return element.codeMirrorLink.getValue();
+            },
+
+            setValue: function (element, value) {
+                return element.codeMirrorLink.setValue(value);
+            },
+            addCSS: function (value) {
+                $('.CodeMirror').css(value);
+            },
+            dodiff: function (element) {
+                element.innerHTML = "";
+                dv = CodeMirror.MergeView(element, {
+                    value: value,
+                    origLeft: panes == 3 ? orig1 : null,
+                    orig: orig2,
+                    lineNumbers: true,
+                    mode: "application/ld+json",
+                    highlightDifferences: highlight,
+                    connect: connect,
+                    collapseIdentical: collapse,
+                    allowEditingOriginals: true,
+                    revertButtons: true,
+                    lineWrapping: true,
+                    foldGutter: true
+                    //  showDifferences: true
+                });
+                element.codeMirrorLink = dv;
+                dv.editor().addLineWidget(57, d);
+
+                //dv.leftOriginal().on("blur", function () {
+                //    orig1 = dv.leftOriginal().getValue();
+                //});
+                //dv.rightOriginal().on("blur", function () {
+                //    orig1 = getRightDiffValue(dv);
+                //});
+
+                return 0;
+            },
+            getLeftDiffValue: function (element) {
+                return element.codeMirrorLink.leftOriginal().getValue();
+            },
+            getRightDiffValue: function (element) {
+                return element.codeMirrorLink.rightOriginal().getValue();
+            },
+            setLeftDiffValue: function (element, value) {
+                orig1 = value;
+                //  element.codeMirrorLink.leftOriginal().setValue(value);
+                return 0;
+            },
+            setRightDiffValue: function (element, value) {
+                orig2 = value;
+                //   element.codeMirrorLink.rightOriginal().setValue(value);
+                return 0;
+            },
+
+
+        }
+
+
+        window.onload = function () {
+            //value = document.documentElement.innerHTML;
+            //orig1 = "<!doctype html>\n\n" + value.replace(/\.\.\//g, "codemirror/").replace("yellow", "orange");
+            //orig2 = value.replace(/\u003cscript/g, "\u003cscript type=text/javascript ")
+            //    .replace("white", "purple;\n      font: comic sans;\n      text-decoration: underline;\n      height: 15em");
+
+            d = document.createElement("div");
+            d.style.cssText = "width: 50px; margin: 7px; height: 14px";
+
+        };
+
+
+
+        window.diffFunctions = {
+            DoDiff: function (text1, text2, dest) {
+
+                var dmp = new diff_match_patch();
+                var a = dmp.diff_linesToChars_(text1, text2);
+                //var a = dmp.diff_linesToWords_(text1, text2);
+
+                var lineText1 = a.chars1;
+                var lineText2 = a.chars2;
+                var lineArray = a.lineArray;
+                var diffs = dmp.diff_main(lineText1, lineText2, false);
+                dmp.diff_cleanupSemantic(diffs);;
+
+                dmp.diff_charsToLines_(diffs, lineArray);
+                console.info(diffs);
+                let patchMake = dmp.patch_make(text1, diffs);
+                //   console.info(patchMake);
+                console.info('===========================================');
+                let diffPatch = dmp.patch_toText(patchMake);
+                let diffTxt = diffs;
+
+                let strInput = "--- compare\n+++ compare\n" + diffPatch;
+                strInput = decodeURIComponent(strInput);
+                console.log(strInput);
+                var diff2htmlUi = new Diff2HtmlUI(dest, strInput, {
+                    diffStyle: 'char',
+                    matching: 'none',
+                    outputFormat: 'side-by-side',
+                    fileListToggle: false,
+                    drawFileList: false
+                });
+                diff2htmlUi.draw();
+
+                return 0;
+            }
+
+
+
+        }
+
+
+
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
+
+
+        //window.addEventListener('beforeunload', function (e) {
+        //    e.preventDefault();
+        //    e.returnValue = '';
+        //    ipcRenderer.send('hide-window');
+        //});
+
+        const { ipcRenderer } = require("electron");
+    </script>
+
+</body>
+</html>

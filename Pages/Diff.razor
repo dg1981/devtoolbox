@@ -1,0 +1,127 @@
+﻿@page "/diff"
+@using CurrieTechnologies.Razor.Clipboard
+
+@inject IDiffVM Model;
+@inject ClipboardService clipboard;
+@inject IJSRuntime jsRunTime;
+@inject ProtectedLocalStorage protectedLocalStorage;
+
+<div style="height: 50%">
+    <div class="row mb-2">
+        <div class="col-sm-6 mt-3">
+            <h3>  <a class="nav-link d-sm-inline" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>@Model.PageName</h3>
+        </div>
+    </div>
+    @*<div class="row">
+            <div class="alert @Model.StatusClass alert-dismissible fade show" role="alert" hidden="@string.IsNullOrWhiteSpace(Model.StatusMessage)">
+                @Model.StatusMessage
+            </div>
+        </div>*@
+
+
+    <EditForm Model="@Model" Context="formContext" role="form">
+        <div class="row  flex-fill ">
+            <DataAnnotationsValidator />
+
+            <div class="col-md-6  flex-fill">
+
+                <div class="card card-warning  ">
+                    <div class="card-header">
+                        <h3 class="card-title  text-bold">@Model.LeftTextBoxTitle:</h3>
+                        <button data-toggle="tooltip" data-placement="top" title="Reset" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.ResetText())"><i class="fa fa-trash-alt"></i></button>
+                        <button data-toggle="tooltip" data-placement="top" title="Paste" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.PasteFromClipboard(Model.ref_SourceTextArea))"><i class="fa fa-paste"></i></button>
+                        <button data-toggle="tooltip" data-placement="top" title="Copy" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.CopyToClipboard(Model.ref_SourceTextArea))"><i class="fa fa-copy"></i></button>
+                    </div>
+                    <div class="card-body  p-0">
+                        <textarea @ref="Model.ref_SourceTextArea" @bind="Model.SourceString" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 text-center pt-5 pl-3 pr-3 align-top  flex-fill">
+                <div class="pt-5"></div>
+
+                <button type="button" class="btn btn-warning btn-flat" @onclick="DoDiff">
+                    <i class="fas fa-redo-alt"></i>  Do Diff
+                </button>
+                <div class="mt-5"></div>
+            </div>
+
+            <div class="col-md-5  flex-fill">
+                <div class="card card-warning">
+                    <div class="card-header">
+                        <h3 class="card-title text-bold">@Model.RightTextBoxTitle:</h3>
+
+                        <button data-toggle="tooltip" data-placement="top" title="Reset" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.ResetText())"><i class="fa fa-trash-alt"></i></button>
+                        <button data-toggle="tooltip" data-placement="top" title="Paste" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.PasteFromClipboard(Model.ref_SourceTextArea))"><i class="fa fa-paste"></i></button>
+
+                        <button data-toggle="tooltip" data-placement="top" title="Copy" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.CopyToClipboard(Model.ref_ResultTextArea))"><i class="fa fa-copy"></i></button>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body p-0 ">
+
+                        <textarea @ref="Model.ref_ResultTextArea" @bind="Model.ResultString" />
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </EditForm>
+</div>
+
+<div class="row  flex-fill ">
+
+    <div class="col-md-12  flex-fill">
+        <div class="card card-warning  ">
+            <div class="card-header">
+                <h3 class="card-title  text-bold">Diff:</h3>
+            </div>
+            <div class="card-body  p-0">
+                <div @ref="ref_ResultDiv" style="width: 100%; height: 100%" />
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+@code {
+
+    public ElementReference ref_ResultDiv { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Model.RightTextboxReadOnly = false;
+            await Model.Initialize();
+        }
+    }
+
+    private async Task<bool> DoDiff()
+    {
+        try
+        {
+            Model.SourceString = await jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.getCode", Model.ref_SourceTextArea);
+            Model.ResultString = await jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.getCode", Model.ref_ResultTextArea);
+
+            await protectedLocalStorage.SetAsync(Model.PageName + "_source", Model.SourceString);
+            await protectedLocalStorage.SetAsync(Model.PageName + "_result", Model.ResultString);
+
+            await jsRunTime.InvokeAsync<int>("diffFunctions.DoDiff",
+                              await Model.GetSourceString(),
+                               await jsRunTime.InvokeAsync<string>("codeMirrorJsFunctions.getCode", Model.ref_ResultTextArea),
+                              ref_ResultDiv);
+
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
+        return true;
+    }
+}
+

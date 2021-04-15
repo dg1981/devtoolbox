@@ -1,0 +1,20 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<Users>
+  <user>    <id>1</id>
+    <first_name>Denny</first_name>    <last_name>Gandhi</last_name>
+    <email>droja0@t-online.de</email>
+  </user>
+  <user>    <id>2</id>
+    <first_name>Salaidh</first_name>    <last_name>Dorber</last_name>
+    <email>sdorber1@bloglovin.com</email>
+  </user>
+  <user>    <id>3</id>
+    <first_name>Matthaeus</first_name>    <last_name>Franz</last_name>
+    <email>mfranz2@com.com</email>
+  </user>
+  <user>
+    <id>4</id>
+    <first_name>Granthem</first_name>    <last_name>Grey</last_name>
+    <email>ggrey3@ezinearticles.com</email>
+  </user>
+</Users>

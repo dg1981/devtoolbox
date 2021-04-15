@@ -1,0 +1,84 @@
+﻿
+
+<div>
+    <div class="row mb-2">
+        <div class="col-sm-6 mt-3">
+            <h3>  <a class="nav-link d-sm-inline" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>@Model.PageName</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="alert @Model.StatusClass alert-dismissible fade show" role="alert" hidden="@string.IsNullOrWhiteSpace(Model.StatusMessage)">
+            @Model.StatusMessage
+        </div>
+    </div>
+
+    <EditForm Model="@Model" Context="formContext" role="form">
+        <div class="row  flex-fill ">
+            <DataAnnotationsValidator />
+
+            <div class="col-md-6 col-sm-5  flex-fill">
+
+                <div class="card card-warning  ">
+                    <div class="card-header">
+                        <h3 class="card-title  text-bold">@Model.LeftTextBoxTitle:</h3>
+                        <button data-toggle="tooltip" data-placement="top" title="Reset" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.ResetText())"><i class="fa fa-trash-alt"></i></button>
+                        <button data-toggle="tooltip" data-placement="top" title="Paste" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.PasteFromClipboard(Model.ref_SourceTextArea))"><i class="fa fa-paste"></i></button>
+                        <button data-toggle="tooltip" data-placement="top" title="Copy" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.CopyToClipboard(Model.ref_SourceTextArea))"><i class="fa fa-copy"></i></button>
+                    </div>
+                    <div class="card-body  p-0 std-ta">
+                        <textarea @ref="Model.ref_SourceTextArea" @bind="Model.SourceString" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-2 text-center pt-5 pl-3 pr-3 align-top  flex-fill" style=" ">
+                <div class="pt-5"></div>
+                @foreach (var f in Model.Functions.Keys)
+                {
+                    <button type="submit" class="btn btn-primary btn-block centerActionBtn mt-3" @onclick="@(() => Model.Functions[f]())">@f</button>
+                }
+                <div class="mt-5"></div>
+            </div>
+
+            <div class="col-md-5 col-sm-5 flex-fill">
+                <div class="card card-warning">
+                    <div class="card-header">
+                        <h3 class="card-title text-bold">@Model.RightTextBoxTitle:</h3>
+                        @if (!Model.RightTextboxReadOnly)
+                        {
+                            <button data-toggle="tooltip" data-placement="top" title="Reset" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.ResetText())"><i class="fa fa-trash-alt"></i></button>
+                            <button data-toggle="tooltip" data-placement="top" title="Paste" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.PasteFromClipboard(Model.ref_SourceTextArea))"><i class="fa fa-paste"></i></button>
+                        }
+                        <button data-toggle="tooltip" data-placement="top" title="Copy" class="btn btn-sm btn-light float-right" @onclick="@(() => Model.CopyToClipboard(Model.ref_ResultTextArea))"><i class="fa fa-copy"></i></button>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body p-0 std-ta">
+                        @if (Model.RightTextboxReadOnly)
+                        {
+                            <textarea @ref="Model.ref_ResultTextArea" @bind="Model.ResultString" readonly />
+                        }
+                        else
+                        {
+                            <textarea @ref="Model.ref_ResultTextArea" @bind="Model.ResultString" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </EditForm>
+</div>
+
+@code {
+
+    [Parameter]
+    public IViewModel Model { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Model.Initialize();
+        }
+    }
+}

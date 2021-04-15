@@ -1,0 +1,313 @@
+﻿@using System.Timers;
+@using ElectronNET.API;
+@using ElectronNET.API.Entities;
+
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="/" class="brand-link">
+        <img src="gear-sm2-512.png" alt="DevGear Logo" class="brand-image img-circle elevation-3"
+             style="opacity: .8">
+        <span class="brand-text font-weight-bolder">Dev Gear</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar user panel (optional) -->
+        @*<div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image">
+                    <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                </div>
+                <div class="info">
+                    <a href="#" class="d-block">Alexander Pierce</a>
+                </div>
+            </div>*@
+
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column nav-child-indent" data-widget="treeview" role="menu" data-accordion="false">
+                <!-- Add icons to the links using the .nav-icon class
+    with font-awesome or any other icon font library -->
+
+                <li class="nav-item">
+                    <a href="diff3" class="nav-link">
+                        <i class="nav-icon fas fa-compress-arrows-alt"></i>
+                        <p>
+                            DIFF
+                        </p>
+                    </a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a href="jwt" class="nav-link">
+                        <i class="nav-icon fas fa-fingerprint"></i>
+                        <p>
+                            JWT
+                        </p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="json" class="nav-link">
+                        <i class="nav-icon fab fa-js"></i>
+                        <p>
+                            JSON
+                        </p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="xml" class="nav-link">
+                        <i class="nav-icon fas fa-file-code"></i>
+                        <p>
+                            XML
+                        </p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="text" class="nav-link">
+                        <i class="nav-icon fas fa-spell-check"></i>
+                        <p>
+                            Text
+                        </p>
+                    </a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a href="base64" class="nav-link">
+                        <i class="nav-icon fas fa-file-alt"></i>
+                        <p>
+                            Base 64
+                        </p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="url" class="nav-link">
+                        <i class="nav-icon fas fa-link"></i>
+                        <p>
+                            URL
+                        </p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="password" class="nav-link">
+                        <i class="nav-icon fas fa-key"></i>
+                        <p>
+                            Password
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="network" class="nav-link">
+                        <i class="nav-icon fas fa-network-wired"></i>
+                        <p>
+                            Network
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="webeditor" class="nav-link">
+                        <i class="nav-icon fas fa-edit"></i>
+                        <p>
+                            Web Editor
+                        </p>
+                    </a>
+                </li>
+
+                @* <li class="nav-item has-treeview"> *@
+                @*     <a href="#" class="nav-link"> *@
+                @*         <i class="nav-icon fas fa-book-reader"></i> *@
+                @*         <p> *@
+                @*             Reference Pages *@
+                @*             <i class="right fas fa-angle-right"></i> *@
+                @*         </p> *@
+                @*     </a> *@
+                @*     <ul class="nav nav-treeview"> *@
+                @*         <li class="nav-item"> *@
+                @*             <a href="/reference/cc" class="nav-link"> *@
+                @*                 <i class="far fa-credit-card nav-icon"></i> *@
+                @*                 <p>Test Credit Cards</p> *@
+                @*             </a> *@
+                @*         </li> *@
+                @* *@
+                @*         <li class="nav-item"> *@
+                @*             <a href="/reference/ascii" class="nav-link"> *@
+                @*                 <i class="fas fa-table nav-icon"></i> *@
+                @*                 <p>Ascii Chart</p> *@
+                @*             </a> *@
+                @*         </li> *@
+                @*     </ul> *@
+                @* </li> *@
+
+
+                <li class="nav-item has-treeview">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-external-link-alt"></i>
+                        <p>
+                            External Tools
+                            <i class="right fas fa-angle-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="https://theasciicode.com.ar/" class="nav-link" target="_blank">
+                                <i class="far fa-clock nav-icon"></i>
+                                <p>Ascii Chart</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="https://www.quackit.com/css/color/charts/css_color_names_chart.cfm" class="nav-link" target="_blank">
+                                <i class="fas fa-palette nav-icon"></i>
+                                <p>CSS Colors</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="https://regexr.com/" class="nav-link" target="_blank">
+                                <i class="far fa-registered nav-icon"></i>
+                                <p>Regular Expressions</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="https://stripe.com/docs/testing" class="nav-link" target="_blank">
+                                <i class="far fa-credit-card nav-icon"></i>
+                                <p>Test Credit Cards</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="https://www.worldtimebuddy.com/" class="nav-link" target="_blank">
+                                <i class="far fa-clock nav-icon"></i>
+                                <p>Time Zone Convertor</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="https://unicode-table.com/en/" class="nav-link" target="_blank">
+                                <i class="fab fa-uniregistry nav-icon"></i>
+                                <p>Unicode Table</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="https://www.epochconverter.com/" class="nav-link" target="_blank">
+                                <i class="fas fa-stopwatch nav-icon"></i>
+                                <p>Unix Epoch</p>
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <div class="bottom-nav brand-text">
+                        <div class="unix-time-box">
+                            <h6><i class="fas fa-clock"></i>&nbsp; UTC Now: </h6>
+                            <div>@utcTime.ToString("dd MMM, hh:mm tt")</div>
+                            <div class="nav_url"><strong><a href="#" style="color: #869099" @onclick="@(() => Electron.Shell.OpenExternalAsync("https://www.GetDevGear.com"))">www.GetDevGear.com</a></strong></div>
+                            <div>@version</div>
+                        </div>
+
+                    </div>
+                </li>
+
+            </ul>
+        </nav>
+
+
+
+
+        <!-- /.sidebar-menu -->
+    </div>
+
+
+
+    <!-- /.sidebar -->
+</aside>
+
+@*<div class="top-row pl-4 navbar navbar-dark">
+        <a class="navbar-brand" href="">DevGear</a>
+        <button class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+
+    <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+        <ul class="nav flex-column">
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="oi oi-home" aria-hidden="true"></span> Home
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="counter">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Counter
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="fetchdata">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="base64">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Base 64
+                </NavLink>
+            </li>
+        </ul>
+    </div>
+
+    @code {
+        bool collapseNavMenu = true;
+
+        string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+        void ToggleNavMenu()
+        {
+            collapseNavMenu = !collapseNavMenu;
+        }
+    }*@
+
+
+
+@code {
+
+    [Parameter]
+    public DateTime utcTime { get; set; } = DateTime.UtcNow;
+
+    [Parameter]
+    public string version { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    //    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (HybridSupport.IsElectronActive)
+                version = "BETA v" + await Electron.App.GetVersionAsync();
+            StartTimerAsync();
+        }
+    }
+
+
+    public async void StartTimerAsync()
+    {
+        while (DateTime.UtcNow.Second != 0) //sync it up to zero first
+        {
+            utcTime = DateTime.UtcNow;
+            StateHasChanged();
+            await Task.Delay(1000);
+        }
+
+        while (true)
+        {
+            utcTime = DateTime.UtcNow;
+            StateHasChanged();
+            await Task.Delay(1000 * 30);
+        }
+    }
+
+
+}

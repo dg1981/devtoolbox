@@ -1,0 +1,209 @@
+﻿@page "/network"
+@using System.Globalization
+@using System.Security.Cryptography
+@using CurrieTechnologies.Razor.Clipboard
+@using System.Net
+@using System.Linq;
+@using System.Threading.Tasks;
+@using System.Net.Sockets
+@using System.Net.NetworkInformation
+@inject ClipboardService clipboard
+@inject IJSRuntime jsRunTime
+
+<div>
+    <div class="row mb-3">
+        <div class="col-sm-6 mt-3">
+            <h3>
+                <a class="nav-link d-sm-inline" data-widget="pushmenu" href="#">
+                    <i class="fas fa-bars"></i>
+                </a>Network Tools
+            </h3>
+        </div>
+    </div>
+    <div class="row">
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header border-0">
+                </div>
+                <div class="card-body">
+
+                    <div class="position-relative mb-3">
+                        <div class="row">
+                            <div class="col-10 offset-1">
+                                <h6 class="text-muted">IP Address or Domain Name and Port Number:</h6>
+                                <div class="input-group input-group-lg mb-4">
+                                    <input @bind="address" id="address" class=" form-control text-monospace text-center" spellcheck="false" />
+                                    <span class="input-group-append  input-group-lg">
+                                        <input @bind="port" id="port" class=" form-control text-monospace text-center" spellcheck="false" />
+                                        <button style="min-width: 50%" type="button" class="btn btn-warning btn-flat" @onclick="@(() => Ping())">
+                                            <i class="fas fa-project-diagram"></i> Can I Reach It?
+                                        </button>
+
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <textarea @bind="result" id="result" class="form-control network-txt-area" style="width: 100%; height: 100px" placeholder="" readonly spellcheck="false"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @*<div class="col-4">
+                <div class="card">
+                    <div class="card-header border-0">
+                    </div>
+                    <div class="card-body">
+
+                        <button style="min-width: 50%" type="button" class="btn btn-warning btn-flat" @onclick="@(() => GetIP())">
+                            <i class="fas fa-redo-alt"></i> My IP?
+                        </button>
+
+                        <div class="card-footer">
+                            <div class="row">
+                                <textarea @bind="myipresult" id="result" class="form-control network-txt-area" style="width: 100%; height: 100px" placeholder="" readonly spellcheck="false"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>*@
+    </div>
+</div>
+
+
+@code {
+
+    private string address = "getdevgear.com";
+    private int port = 443;
+    private string result;
+    private string myipresult;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRunTime.InvokeVoidAsync("setTitle", "Network - DevGearApp"); 
+    }
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+    private async Task<bool> GetIP()
+    {
+
+        var ni = ((NetworkInterfaceType[])Enum.GetValues(typeof(NetworkInterfaceType))).ToList()
+            .Where(x => x == NetworkInterfaceType.Wireless80211 || x == NetworkInterfaceType.Ethernet).ToList();
+
+        Parallel.ForEach(ni, (t) =>
+        {
+            var ip = GetLocalIPv4(t);
+            if (string.IsNullOrWhiteSpace(ip)) return;
+            result += "Internal IP - " + t + ": " + ip + "\r\n";
+
+        });
+
+        await InvokeAsync(() => StateHasChanged()).ConfigureAwait(false);
+
+
+        ni = ((NetworkInterfaceType[])Enum.GetValues(typeof(NetworkInterfaceType))).ToList()
+            .Where(x => x != NetworkInterfaceType.Wireless80211 && x != NetworkInterfaceType.Ethernet).ToList();
+
+        Parallel.ForEach(ni, (t) =>
+        {
+            var ip = GetLocalIPv4(t);
+            if (string.IsNullOrWhiteSpace(ip)) return;
+            result += "Internal IP - " + t + ": " + ip + "\r\n";
+
+        });
+        await InvokeAsync(() => StateHasChanged()).ConfigureAwait(false);
+
+
+        return true;
+    }
+
+    private async Task<bool> Ping()
+    {
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            result = "Please set address to connect to";
+            return false;
+        }
+
+        //if (string.IsNullOrWhiteSpace(port) || string.isn)
+        //{
+        //    result = "Please set correct port number to connect to";
+        //    return false;
+        //}
+
+        result = "Attempting TCP connection ...\r\n";
+        try
+        {
+            using (var client = new TcpClient(AddressFamily.InterNetwork))
+            {
+                client.SendTimeout = 10 * 1000;
+                client.ReceiveTimeout = 5 * 1000;
+                await client.ConnectAsync(address, port);
+
+                result += $"\r\nSuccessfully able to reach {address} on port: {port}!";
+                result += $"\r\n\r\nRemote End Point: {client.Client.RemoteEndPoint.ToString()} ";
+
+                await InvokeAsync(() => StateHasChanged()).ConfigureAwait(false);
+
+                result += "\r\n\r\n-------------------\r\n\r\nYour IP:";
+                string externalip = new WebClient().DownloadString("http://icanhazip.com");
+                result += "External IP: " + (externalip) + "\r\n";
+                await InvokeAsync(() => StateHasChanged()).ConfigureAwait(false);
+
+                Task.Run(() => GetIP().ConfigureAwait(false));
+
+
+            }
+            return true;
+        }
+        catch (SocketException ex)
+        {
+            result += $"Unable to connect to {address} on port: {port}!\r\n{ex.Message}";
+            return false;
+        }
+
+    }
+
+    internal string GetLocalIPv4(NetworkInterfaceType _type)
+    {  // Checks your IP adress from the local network connected to a gateway. This to avoid issues with double network cards
+        string output = "";  // default output
+        foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces()) // Iterate over each network interface
+        {  // Find the network interface which has been provided in the arguments, break the loop if found
+            if (item.NetworkInterfaceType == _type && item.OperationalStatus == OperationalStatus.Up)
+            {   // Fetch the properties of this adapter
+                IPInterfaceProperties adapterProperties = item.GetIPProperties();
+                // Check if the gateway adress exist, if not its most likley a virtual network or smth
+                if (adapterProperties.GatewayAddresses.FirstOrDefault() != null)
+                {   // Iterate over each available unicast adresses
+                    foreach (UnicastIPAddressInformation ip in adapterProperties.UnicastAddresses)
+                    {   // If the IP is a local IPv4 adress
+                        if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {   // we got a match!
+                            output = ip.Address.ToString();
+                            break;  // break the loop!!
+                        }
+                    }
+                }
+            }
+            // Check if we got a result if so break this method
+            if (output != "") { break; }
+        }
+        // Return results
+
+        return output;
+    }
+
+
+
+}
